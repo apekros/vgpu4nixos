@@ -103,11 +103,12 @@ let
       with pkgs;
       [
         libdrm
-        xorg.libXext
-        xorg.libX11
-        xorg.libXv
-        xorg.libXrandr
-        xorg.libxcb
+        # Top-level since nixpkgs 26.05, which deprecates the xorg set.
+        (pkgs.libxext or xorg.libXext)
+        (pkgs.libx11 or xorg.libX11)
+        (pkgs.libxv or xorg.libXv)
+        (pkgs.libxrandr or xorg.libXrandr)
+        (pkgs.libxcb or xorg.libxcb)
         zlib
         stdenv.cc.cc
         wayland
@@ -181,8 +182,9 @@ let
       libarchive
       unzip
       jq
-      kernel.moduleBuildDependencies
-    ] ++ lib.optional (!guest) bbe;
+    ]
+    ++ kernel.moduleBuildDependencies
+    ++ lib.optional (!guest) bbe;
 
     disallowedReferences = [ kernel.dev ];
 
