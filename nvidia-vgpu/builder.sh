@@ -291,8 +291,12 @@ EOF
                       -e "s|/usr/share/nvidia/vgpu/vgpuConfig.xml|/etc/nvidia/vgpu/vgpuConfig.xml\x00\x00\x00\x00\x00\x00|" \
                       -o $bin/bin/$i $i
                 fi
-                patchelf --interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-                    --set-rpath $out/lib:$libPath $bin/bin/$i
+                # Two separate patchelf invocations, rpath first. patchelf
+                # 0.19 doing both at once grows the header LOAD over the
+                # next one, ld.so then segfaults writing .dynamic.
+                # https://github.com/NixOS/nixpkgs/issues/576412
+                patchelf --set-rpath "$out/lib:$libPath" "$bin/bin/$i"
+                patchelf --interpreter "$(cat "$NIX_CC/nix-support/dynamic-linker")" "$bin/bin/$i"
             fi
         done
         substituteInPlace nvidia-bug-report.sh \
